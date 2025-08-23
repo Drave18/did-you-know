@@ -3,6 +3,14 @@ import "./modal.js";
 // Select container
 const items = document.querySelector(".items");
 
+
+// Add loader to DOM
+const loader = document.createElement('div');
+loader.className = 'loader';
+loader.style.display = 'none';
+loader.style.margin = '40px auto';
+items.parentNode.insertBefore(loader, items);
+
 window.onload = () => {
   loadFacts();
 };
@@ -15,6 +23,8 @@ let currentSort = null;
 
 //GET ALL DATA
 async function loadFacts() {
+  loader.style.display = 'block';
+  items.style.display = 'none';
   try {
     const response = await fetch('/api/facts');
     if (!response.ok) {
@@ -26,6 +36,9 @@ async function loadFacts() {
     displayFacts(data);
   } catch (error) {
     console.error("Error fetching facts:", error);
+  } finally {
+    loader.style.display = 'none';
+    items.style.display = '';
   }
 }
 
