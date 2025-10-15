@@ -3,18 +3,16 @@ import "./modal.js";
 // Select container
 const items = document.querySelector(".items");
 
-
 // Add loader to DOM
-const loader = document.createElement('div');
-loader.className = 'loader';
-loader.style.display = 'none';
-loader.style.margin = '40px auto';
+const loader = document.createElement("div");
+loader.className = "loader";
+loader.style.display = "none";
+loader.style.margin = "40px auto";
 items.parentNode.insertBefore(loader, items);
 
 window.onload = () => {
   loadFacts();
 };
-
 
 // Store all facts globally
 let facts = [];
@@ -23,10 +21,10 @@ let currentSort = null;
 
 //GET ALL DATA
 async function loadFacts() {
-  loader.style.display = 'block';
-  items.style.display = 'none';
+  loader.style.display = "block";
+  items.style.display = "none";
   try {
-    const response = await fetch('/api/facts');
+    const response = await fetch("/api/facts");
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -37,17 +35,16 @@ async function loadFacts() {
   } catch (error) {
     console.error("Error fetching facts:", error);
   } finally {
-    loader.style.display = 'none';
-    items.style.display = '';
+    loader.style.display = "none";
+    items.style.display = "";
   }
 }
 
-
-// CREATE FACT ITEMS
-function displayFacts(dataArray){
+// CREATE FACT ITEMS----------------------------------
+function displayFacts(dataArray) {
   //Remove previous facts
-  items.innerHTML=""
-  dataArray.forEach((fact)=>{
+  items.innerHTML = "";
+  dataArray.forEach((fact) => {
     //Component
     const child = `  
     <div class="facts-item" data-id="${fact.id}">
@@ -89,47 +86,42 @@ function displayFacts(dataArray){
     const factId = fact.id;
     //-------------------------------
 
-
-
-    //REACTIONS 
-    positiveBtn.onclick= ()=>{
-      const hasVotedPositive = localStorage.getItem (`positive_votes_${factId}`);
-      if(hasVotedPositive){
+    //REACTIONS
+    positiveBtn.onclick = () => {
+      const hasVotedPositive = localStorage.getItem(`positive_votes_${factId}`);
+      if (hasVotedPositive) {
         alert("You have already voted.");
-        return
+        return;
       }
-      reactionFn(
-        fact.id,
-        "positive",
-        fact.votes_positive
-      );
+      reactionFn(fact.id, "positive", fact.votes_positive);
       localStorage.setItem(`positive_votes_${factId}`, "true");
-    }
+    };
 
-    negativeBtn.onclick = ()=>{
-      const hasVotedNegative= localStorage.getItem(`negative_votes_${factId}`);
-      if(hasVotedNegative){
-        alert("You have already voted")
-        return
+    negativeBtn.onclick = () => {
+      const hasVotedNegative = localStorage.getItem(`negative_votes_${factId}`);
+      if (hasVotedNegative) {
+        alert("You have already voted");
+        return;
       }
-      reactionFn(
-        fact.id,
-        "negative",
-        fact.votes_negative
-      )
+      reactionFn(fact.id, "negative", fact.votes_negative);
       localStorage.setItem(`negative_votes_${factId}`, "true");
-    }
-  })
+    };
+  });
 }
+
+
+//-----------------------------------------------------------------------------------------------------------------
+// CREATE FACT ITEMS-----------------------
+
 //insert data in the database func
 async function createFact(factData) {
   try {
-    const response = await fetch('/api/create-fact', {
-      method: 'POST',
+    const response = await fetch("/api/create-fact", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(factData)
+      body: JSON.stringify(factData),
     });
 
     if (!response.ok) {
@@ -145,23 +137,25 @@ async function createFact(factData) {
   }
 }
 //Use the function when user inputs data
-document.getElementById("factForm").addEventListener("submit", async function (event){
-  event.preventDefault()
-  const formData = new FormData(this);
-  const fact = formData.get("fact");
-  const source = formData.get("source");
-  const category = formData.get("category");
-  const newFact = {
-    text:fact,
-    source:source,
-    category:category.toLowerCase()
-  }
-  await createFact(newFact)
+document
+  .getElementById("factForm")
+  .addEventListener("submit", async function (event) {
+    event.preventDefault();
+    const formData = new FormData(this);
+    const fact = formData.get("fact");
+    const source = formData.get("source");
+    const category = formData.get("category");
+    const newFact = {
+      text: fact,
+      source: source,
+      category: category.toLowerCase(),
+    };
+    await createFact(newFact);
 
-  document.getElementById("modal").close();
-  this.reset();
-  loadFacts();
-})
+    document.getElementById("modal").close();
+    this.reset();
+    loadFacts();
+  });
 
 //FILTERING CATEGORIES
 const categoryButtons = document.querySelectorAll(".categories-button");
@@ -185,7 +179,6 @@ categoryButtons.forEach((button) => {
   });
 });
 
-
 //NEWEST & POPULAR FILTERING FEATURE:
 const newestButton = document.querySelectorAll(".button-facts-button")[0];
 const popularButton = document.querySelectorAll(".button-facts-button")[1];
@@ -198,15 +191,17 @@ popularButton.addEventListener("click", () => {
   sortFacts("popularity");
 });
 
-function sortFacts(type) {
+function  sortFacts(type) {
   currentSort = type;
-  
+
   // Get facts filtered by current category
   let filteredFacts = facts;
   if (selectedCategory !== "all") {
-    filteredFacts = facts.filter(fact => fact.category.toLowerCase() === selectedCategory);
+    filteredFacts = facts.filter(
+      (fact) => fact.category.toLowerCase() === selectedCategory
+    );
   }
-  
+
   // Sort the filtered facts
   let sortedFacts = [...filteredFacts];
   if (type === "popularity") {
@@ -223,26 +218,26 @@ function sortFacts(type) {
 function filterAndDisplayFacts() {
   let filteredFacts = facts;
   if (selectedCategory !== "all") {
-    filteredFacts = facts.filter(fact => fact.category.toLowerCase() === selectedCategory);
+    filteredFacts = facts.filter(
+      (fact) => fact.category.toLowerCase() === selectedCategory
+    );
   }
   displayFacts(filteredFacts);
 }
 
-
-
 //VOTING FEATURE
 async function reactionFn(id, type, currentVotes) {
   try {
-    const response = await fetch('/api/vote', {
-      method: 'POST',
+    const response = await fetch("/api/vote", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         id: id,
         type: type,
-        currentVotes: currentVotes
-      })
+        currentVotes: currentVotes,
+      }),
     });
 
     if (!response.ok) {
@@ -265,4 +260,4 @@ async function reactionFn(id, type, currentVotes) {
 }
 
 
-
+//newest and 
